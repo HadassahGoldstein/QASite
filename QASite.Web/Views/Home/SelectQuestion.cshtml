@@ -6,7 +6,7 @@
         <hr />
         <p>@Model.Question.Text</p>
         <hr />
-        <span>Asked by @Model.Question.Questioner</span>
+        <span>Asked by @Model.Question.User.Name</span>
         on
         <span>@Model.Question.DateAsked.ToLongDateString()</span>
         <br />
@@ -17,12 +17,12 @@
         }
 
         <br />
-        <span>Likes: </span> <span id="likes-count">@Model.Question.Likes</span>
+        <span>Likes: </span> <span id="likes-count">@Model.Question.Likes.Count</span>
         <input type="hidden" id="current-id" value="@Model.Question.Id" />
         <br />
         @if (User.Identity.IsAuthenticated)
         {
-            <span style="font-size: 40px;cursor: pointer;" class="oi oi-heart @(Model.IsLiked?"text-danger":"")" id="like-btn" data-question-id="@Model.Question.Id"></span>
+            <span style="font-size: 40px;cursor: pointer;" class="oi oi-heart @(Model.IsLiked?"text-danger":"")" id="like-btn" data-question-id="@Model.Question.Id" data-is-liked="@Model.IsLiked"></span>
         }
     </div>
 </div>
@@ -47,7 +47,7 @@ else
             <div class="col-md-8 offset-md-2 card card-body bg-light">
                 <div>@a.Text</div>
                 <br />
-                <span>Answered by @a.Name</span>
+                <span>Answered by @a.User.Name</span>
                 <span>on</span>
                 <span>@a.Date.ToLongDateString()</span>
                 <hr />

@@ -6,11 +6,15 @@
         })
     }, 1000)
 
-    $("#like-btn").on('click', function () {
-        const id = $(this).data("question-id");
-        $(this).prop('disabled', true);
-        $.post("/Home/AddLike", { id }, function (likes) {
-        })       
-        $(this).addClass("text-danger");
+    $("#like-btn").on('click', function () {       
+        const questionId = $(this).data("question-id");
+        var like = $(this).data('is-liked');        
+        if (like=='False') {
+            $.post("/Home/AddLike", { questionId }, function (likes) {
+            })
+            $(this).addClass("text-danger");           
+        }
+        $(this).unbind('click');
+       
     })
 })

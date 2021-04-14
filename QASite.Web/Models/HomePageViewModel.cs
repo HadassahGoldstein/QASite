@@ -14,6 +14,8 @@ namespace QASite.Web.Models
     {
         public Question Question { get; set; }
         public bool IsLiked { get; set; }
+       
+       
     }
     public class QuestionsTagViewModel
     {

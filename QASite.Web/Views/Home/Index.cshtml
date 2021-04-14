@@ -23,7 +23,7 @@
                 <div style="margin-top: 10px;">
                    @((q.Text.Length <=200) ? q.Text : $"{q.Text.Substring(0,200)}...")
                 </div>
-                <span>Likes: @q.Likes</span>
+                <span>Likes: @q.Likes.Count</span>
                 <br />
                 <span>@q.Answers.Count answer(s)</span>
             </div>

@@ -20,7 +20,6 @@ namespace QASite.Web.Controllers
         public HomeController(IConfiguration configuration)
         {
             _configuration = configuration;
-
         }
         public IActionResult Index()
         {
@@ -29,7 +28,6 @@ namespace QASite.Web.Controllers
             var vm = new HomePageViewModel()
             {
                 Questions = repo.GetQuestions(),
-
             };
             return View(vm);
         }
@@ -37,12 +35,16 @@ namespace QASite.Web.Controllers
         {
             var connectionString = _configuration.GetConnectionString("ConStr");
             var repo = new QARepository(connectionString);
-            var ids = HttpContext.Session.Get<List<int>>("like-ids");
+            Question q = repo.GetQuestionById(id);
+            User u = repo.GetByEmail(User.Identity.Name);
             var vm = new ViewQuestionViewModel()
             {
-                Question = repo.GetQuestionById(id),
-                IsLiked = ids == null ? false : ids.Contains(id)
+               Question=q                               
             };
+            if (u != null)
+            {
+                vm.IsLiked = q.Likes.Any(l =>l.UserId == u.Id);
+            }
             return View(vm);
         }
         [Authorize]
@@ -56,7 +58,7 @@ namespace QASite.Web.Controllers
         {
             var connectionString = _configuration.GetConnectionString("ConStr");
             var repo = new QARepository(connectionString);
-            q.Questioner = repo.GetByEmail(User.Identity.Name).Name;
+            q.UserId = repo.GetByEmail(User.Identity.Name).Id;
             repo.AddQuestion(q, tags);
             return Redirect("/");
         }
@@ -66,31 +68,20 @@ namespace QASite.Web.Controllers
         {
             var connectionString = _configuration.GetConnectionString("ConStr");
             var repo = new QARepository(connectionString);
-            User u = repo.GetByEmail(User.Identity.Name);
-            a.Name = u.Name;
+            a.UserId = repo.GetByEmail(User.Identity.Name).Id;            
             a.Date = DateTime.Now;
             repo.AddAnswer(a);
             return Redirect($"/home/selectQuestion?id={a.QuestionId}");
         }
         [Authorize]
         [HttpPost]
-        public IActionResult AddLike(int id)
+        public IActionResult AddLike(int questionId)
         {
             var connectionString = _configuration.GetConnectionString("ConStr");
             var repo = new QARepository(connectionString);
-            var ids = HttpContext.Session.Get<List<int>>("like-ids");
-            if (ids == null)
-            {
-                ids = new List<int>();
-            }
-            if (ids.Contains(id))
-            {
-                return Json(id);
-            }
-            repo.AddLike(id);
-            ids.Add(id);
-            HttpContext.Session.Set("like-ids", ids);
-            return Json(id);
+            User u = repo.GetByEmail(User.Identity.Name);
+            repo.AddLike(questionId, u.Id);                                              
+            return Json(questionId);
         }
         public IActionResult CurrentLikes(int id)
         {
@@ -111,19 +102,5 @@ namespace QASite.Web.Controllers
             return View(vm);
         }
     }
-    public static class SessionExtensions
-    {
-        public static void Set<T>(this ISession session, string key, T value)
-        {
-            session.SetString(key, JsonConvert.SerializeObject(value));
-        }
-
-        public static T Get<T>(this ISession session, string key)
-        {
-            string value = session.GetString(key);
-
-            return value == null ? default(T) :
-                JsonConvert.DeserializeObject<T>(value);
-        }
-    }
+    
 }

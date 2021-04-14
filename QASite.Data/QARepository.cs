@@ -36,12 +36,26 @@ namespace QASite.Data
         public List<Question> GetQuestions()
         {
             using var context = new QADbContext(_connectionString);
-            return context.Questions.Include(q=>q.QuestionsTags).ThenInclude(qt=>qt.Tag).Include(q=>q.Answers).OrderByDescending(q=>q.DateAsked).ToList();           
+            return context.Questions
+                .Include(q=>q.User)
+                .Include(q=>q.QuestionsTags)
+                .ThenInclude(qt=>qt.Tag)
+                .Include(q=>q.Answers)
+                .ThenInclude(a=>a.User)
+                .Include(q=>q.Likes)
+                .OrderByDescending(q=>q.DateAsked).ToList();           
         }
         public Question GetQuestionById(int id)
         {
             using var context = new QADbContext(_connectionString);
-            return context.Questions.Include(q => q.Answers).Include(q => q.QuestionsTags).ThenInclude(qt => qt.Tag).FirstOrDefault(q => q.Id == id);
+            return context.Questions
+                .Include(q=>q.User)
+                .Include(q => q.Answers)
+                .ThenInclude(a=>a.User)
+                .Include(q => q.QuestionsTags)
+                .ThenInclude(qt => qt.Tag)
+                .Include(q=>q.Likes)
+                .FirstOrDefault(q => q.Id == id);
         }
         public void AddAnswer(Answer a)
         {
@@ -84,26 +98,27 @@ namespace QASite.Data
             context.SaveChanges();
             return t.Id;
         }
-        public void AddLike(int id)
+        public void AddLike(int questionId,int userId)
         {
             using var context = new QADbContext(_connectionString);
-            context.Database.ExecuteSqlInterpolated($"UPDATE Questions SET Likes= Likes+1 WHERE id={id}");
+            context.Likes.Add(new Likes { QuestionId = questionId, UserId = userId });
             context.SaveChanges();
         }
         public int GetCurrentLikes(int id)
         {
             using var context = new QADbContext(_connectionString);
-            Question q= context.Questions.FirstOrDefault(q => q.Id == id);
-            return q == null ? 0 : q.Likes;
+            return context.Likes.Count(l=> l.QuestionId == id);            
         }       
         public List<Question> GetQuestionsForTag(string name)
         {
             using var context = new QADbContext(_connectionString);
-            return context.Questions.Include(q => q.QuestionsTags)
+            return context.Questions.Include(q => q.QuestionsTags)             
                 .ThenInclude(qt => qt.Tag)
                 .Include(q => q.Answers)
                 .Where(q=>q.QuestionsTags.Any(qt=>qt.Tag.Name==name))
+                .Include(q => q.User)
+                .Include(q => q.Likes)
                 .OrderByDescending(q => q.DateAsked).ToList();
-        }        
+        }           
     }
 }

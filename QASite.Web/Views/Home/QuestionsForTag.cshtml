@@ -16,10 +16,8 @@
                 <div>
                     <span>Tags:</span>
                     @foreach (QuestionsTags t in q.QuestionsTags)
-                    {
-                        <a href="/Home/QuestionForTag?name=@t.Tag.Name">
-                            <span class="badge badge-primary">@t.Tag.Name</span>
-                        </a>
+                    {                        
+                            <span class="badge badge-primary">@t.Tag.Name</span>                       
                     }
                 </div>
                 <div style="margin-top: 10px;">
